@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --neutral-color: #95a5a6;
+            --background-color: #f9f9f9;
+            --card-color: #ffffff;
+            --text-color: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .result-section {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .result-card {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .result-details {
+            flex-grow: 1;
+        }
+
+        .credibility-meter {
+            width: 100%;
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .credibility-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease-in-out;
+        }
+
+        .factors {
+            margin-top: 20px;
+        }
+
+        .factor {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .factor-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .history-section {
+            margin-top: 40px;
+        }
+
+        .history-item {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .history-item:hover {
+            background-color: #e9e9e9;
+        }
+
+        .history-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .history-score {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header h1 {
+                font-size: 24px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                border-bottom: none;
+            }
+            
+            .tab {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .tab.active {
+                border-bottom: 1px solid var(--primary-color);
+            }
+            
+            .actions {
+                justify-content: center;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Fake News Detector</h1>
+            <p>Verify the credibility of news articles with AI-powered analysis</p>
+        </header>
+        
+        <div class="card">
+            <div class="input-section">
+                <div class="tabs">
+                    <div class="tab active" data-tab="url">URL Input</div>
+                    <div class="tab" data-tab="text">Text Input</div>
+                </div>
+                
+                <div class="tab-content active" id="url-input">
+                    <input type="text" id="news-url" placeholder="Paste news article URL here...">
+                </div>
+                
+                <div class="tab-content" id="text-input">
+                    <textarea id="news-content" placeholder="Paste the news content here..."></textarea>
+                </div>
+                
+                <div class="actions">
+                    <button id="analyze-btn">Analyze</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Analyzing news content...</p>
+        </div>
+        
+        <div class="result-section">
+            <div class="card">
+                <h2>Analysis Results</h2>
+                <div class="result-card">
+                    <div class="result-icon" id="result-icon">🔍</div>
+                    <div class="result-details">
+                        <h3 id="result-heading">Credibility Score</h3>
+                        <div class="credibility-meter">
+                            <div class="credibility-fill" id="credibility-fill"></div>
+                        </div>
+                        <p id="result-description">This article has a moderate risk of containing false information.</p>
+                    </div>
+                </div>
+                
+                <div class="factors">
+                    <h3>Key Factors</h3>
+                    <div id="factors-list">
+                        <!-- Factors will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <h2>Recent Checks</h2>
+            <div id="history-list">
+                <!-- History items will be inserted here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const urlInput = document.getElementById('news-url');
+        const textInput = document.getElementById('news-content');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const loadingSection = document.querySelector('.loading');
+        const resultSection = document.querySelector('.result-section');
+        const credibilityFill = document.getElementById('credibility-fill');
+        const resultIcon = document.getElementById('result-icon');
+        const resultHeading = document.getElementById('result-heading');
+        const resultDescription = document.getElementById('result-description');
+        const factorsList = document.getElementById('factors-list');
+        const historyList = document.getElementById('history-list');
+
+        // Tab switching functionality
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-input`).classList.add('active');
+            });
+        });
+
+        // Mock data for simulating API response
+        const mockResponses = [
+            {
+                score: 0.15,
+                category: 'reliable',
+                description: 'This article appears to be reliable. The content is consistent with verified information and comes from a reputable source.',
+                factors: [
+                    { icon: '✅', text: 'Content matches information from multiple verified sources' },
+                    { icon: '✅', text: 'Author has credentials in the relevant field' },
+                    { icon: '✅', text: 'Article contains proper citations and references' },
+                    { icon: '⚠️', text: 'Contains some emotional language, but facts are accurate' }
+                ]
+            },
+            {
+                score: 0.45,
+                category: 'questionable',
+                description: 'This article has a moderate risk of containing false information. Some claims are unverified or potentially misleading.',
+                factors: [
+                    { icon: '⚠️', text: 'Some statements lack proper citations' },
+                    { icon: '⚠️', text: 'Source has mixed reputation for factual reporting' },
+                    { icon: '⚠️', text: 'Contains sensationalized language and emotional appeals' },
+                    { icon: '✅', text: 'Some information matches verified sources' }
+                ]
+            },
+            {
+                score: 0.85,
+                category: 'unreliable',
+                description: 'This article is likely to contain false information. Multiple red flags indicate highly misleading or fabricated content.',
+                factors: [
+                    { icon: '❌', text: 'Contains claims contradicted by expert consensus' },
+                    { icon: '❌', text: 'Source has history of publishing false information' },
+                    { icon: '❌', text: 'Uses excessively sensational language and clickbait' },
+                    { icon: '❌', text: 'No citations or references to verify claims' }
+                ]
+            }
+        ];
+
+        // History data
+        let historyItems = [
+            { title: 'Breaking: Scientists Discover New COVID Treatment', score: 0.75, category: 'unreliable' },
+            { title: 'Local Government Announces Infrastructure Plan', score: 0.25, category: 'questionable' },
+            { title: 'Research Shows Benefits of Mediterranean Diet', score: 0.12, category: 'reliable' }
+        ];
+
+        // Display history items
+        function renderHistory() {
+            historyList.innerHTML = '';
+            historyItems.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const scoreClass = getScoreClass(item.score);
+                
+                historyItem.innerHTML = `
+                    <div class="history-title">${item.title}</div>
+                    <div class="history-score ${scoreClass}">${getCategoryLabel(item.category)}</div>
+                `;
+                
+                historyItem.addEventListener('click', () => {
+                    // Simulate clicking an item from history
+                    showResults(mockResponses.find(response => response.category === item.category));
+                });
+                
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // Get class based on score
+        function getScoreClass(score) {
+            if (score < 0.3) return 'bg-success';
+            if (score < 0.6) return 'bg-warning';
+            return 'bg-danger';
+        }
+
+        // Get category label
+        function getCategoryLabel(category) {
+            switch(category) {
+                case 'reliable': return 'Reliable';
+                case 'questionable': return 'Questionable';
+                case 'unreliable': return 'Unreliable';
+                default: return 'Unknown';
+            }
+        }
+
+        // Display the results
+        function showResults(response) {
+            // Set the credibility meter fill
+            credibilityFill.style.width = `${response.score * 100}%`;
+            
+            // Set the appropriate color based on score
+            if (response.score < 0.3) {
+                credibilityFill.style.backgroundColor = 'var(--success-color)';
+                resultIcon.textContent = '✅';
+            } else if (response.score < 0.6) {
+                credibilityFill.style.backgroundColor = 'var(--warning-color)';
+                resultIcon.textContent = '⚠️';
+            } else {
+                credibilityFill.style.backgroundColor = 'var(--danger-color)';
+                resultIcon.textContent = '❌';
+            }
+            
+            // Set the result heading
+            resultHeading.textContent = `${getCategoryLabel(response.category)} (${Math.round((1 - response.score) * 100)}% credible)`;
+            
+            // Set the description
+            resultDescription.textContent = response.description;
+            
+            // Clear and populate factors
+            factorsList.innerHTML = '';
+            response.factors.forEach(factor => {
+                const factorElement = document.createElement('div');
+                factorElement.className = 'factor';
+                factorElement.innerHTML = `
+                    <div class="factor-icon">${factor.icon}</div>
+                    <div>${factor.text}</div>
+                `;
+                factorsList.appendChild(factorElement);
+            });
+            
+            // Show the result section
+            resultSection.style.display = 'block';
+            
+            // Hide the loading section
+            loadingSection.style.display = 'none';
+        }
+
+        // Handle analyze button click
+        analyzeBtn.addEventListener('click', () => {
+            // Check if either input has content
+            const activeTab = document.querySelector('.tab.active').dataset.tab;
+            let input = '';
+            let inputTitle = '';
+            
+            if (activeTab === 'url') {
+                input = urlInput.value.trim();
+                inputTitle = input;
+            } else {
+                input = textInput.value.trim();
+                // Extract a title from the first line or first few words
+                inputTitle = input.split('\n')[0].slice(0, 50) + (input.split('\n')[0].length > 50 ? '...' : '');
+            }
+            
+            if (!input) {
+                alert('Please enter a URL or text content to analyze.');
+                return;
+            }
+            
+            // Show loading state
+            loadingSection.style.display = 'block';
+            resultSection.style.display = 'none';
+            
+            // In a real application, this would be an API call
+            // For this demo, we'll use a setTimeout to simulate the API call
+            // and randomly select one of our mock responses
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * mockResponses.length);
+                const response = mockResponses[randomIndex];
+                
+                // Add to history
+                historyItems.unshift({
+                    title: inputTitle,
+                    score: response.score,
+                    category: response.category
+                });
+                
+                // Keep only the latest 5 items
+                if (historyItems.length > 5) {
+                    historyItems.pop();
+                }
+                
+                // Update the history display
+                renderHistory();
+                
+                // Show the results
+                showResults(response);
+            }, 2000); // 2 seconds delay to simulate API call
+        });
+
+        // Initialize history
+        renderHistory();
+
+        // Add some CSS for history score badges
+        const style = document.createElement('style');
+        style.textContent = `
+            .bg-success {
+                background-color: var(--success-color);
+            }
+            .bg-warning {
+                background-color: var(--warning-color);
+            }
+            .bg-danger {
+                background-color: var(--danger-color);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
